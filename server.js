@@ -5,18 +5,7 @@ const path = require("path");
 const ConnectDb = require("./DB/Db");
 const router = require('./Router/Routes');
 
-// Simple CORS fix - put this FIRST, before any other middleware
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
