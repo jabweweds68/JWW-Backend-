@@ -21,8 +21,14 @@ const router = require('./Router/Routes');
 //   ],
 //   credentials: true
 // }));
-app.use(cors());
-app.use(express.json());  
+// app.use(cors());
+app.use(cors({
+  origin: true, 
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Conditional body parsing - CRITICAL FIX
@@ -33,7 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 //     console.log('Skipping body parsing for multipart request');
 //     return next();
 //   }
-    
+
 //   // Use built-in parsers for other content types
 //   // console.log('Using standard body parsing for:', contentType);
 //   express.json()(req, res, () => {
@@ -51,16 +57,16 @@ app.use("/", router);
 const startServer = async () => {
   try {
     // console.log('🚀 Starting server initialization...');
-    
+
     // Connect to database first
     await ConnectDb();
-    
+
     // Start server only after successful DB connection
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-    
+
   } catch (err) {
     console.error('❌ Failed to start server:', err);
     console.error('Please check your database connection and try again.');
