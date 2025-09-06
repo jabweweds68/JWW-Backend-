@@ -79,7 +79,8 @@ const Adminlogin = async(req, res) => {
     // console.log('Success response sent');
     
   } catch (err) {
-    console.error('Admin login error details:', err);
+    // console.error('Admin login error details:', err);
+    console.log('Admin login error details:', err);
     console.error('Error stack:', err.stack);
     res.status(500).json({
       success: false,
