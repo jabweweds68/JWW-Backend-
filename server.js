@@ -6,50 +6,26 @@ const path = require("path");
 const ConnectDb = require("./DB/Db");
 const router = require('./Router/Routes');
 
-// CORS configuration - Updated to handle production deployment
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      // Local development
-      'http://127.0.0.1:5173',
-      'http://localhost:5173',
-      'http://127.0.0.1:3000',
-      'http://localhost:3000',
-      
-      // Add your frontend deployment URLs here
-      // Replace with your actual frontend deployment URLs
-      'https://your-frontend-domain.vercel.app',
-      'https://your-frontend-domain.netlify.app',
-      'https://your-frontend-domain.github.io',
-      // Add more as needed
-    ];
-    
-    // For development, you can also allow all origins (NOT recommended for production)
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+// SIMPLE CORS FIX - Allow all origins for now
+app.use(cors({
+  origin: true, // This allows ALL origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-};
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
 
-app.use(cors(corsOptions));
-
-// Alternative simple approach for development/testing
-// Uncomment this and comment out the above corsOptions if you want to allow all origins temporarily
+// Alternative more specific CORS (use this after testing)
 // app.use(cors({
-//   origin: true, // This allows all origins - USE ONLY FOR DEVELOPMENT
-//   credentials: true
+//   origin: [
+//     'http://localhost:5173',
+//     'http://127.0.0.1:5173',
+//     'http://localhost:3000',
+//     'http://127.0.0.1:3000',
+//     // Add your production frontend URL here when you deploy
+//   ],
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 // }));
 
 app.use(express.json());  
@@ -73,7 +49,7 @@ const startServer = async () => {
     const PORT = process.env.PORT || 8000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`CORS enabled for all origins (development mode)`);
     });
     
   } catch (err) {
