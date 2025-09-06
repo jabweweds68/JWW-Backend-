@@ -7,18 +7,6 @@ const Products = require("../Controller/ProductController");
 const Orders = require("../Controller/OrderController");
 const Login=require("../Auth/Login");
 
-router.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
-
 // MULTER SETUP FOR PRODUCTS
 const productStorage = multer.diskStorage({
   destination: (req, file, cb) => {
