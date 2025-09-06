@@ -1,71 +1,72 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const cors = require("cors");
 const path = require("path");
 const ConnectDb = require("./DB/Db");
 const router = require('./Router/Routes');
 
+// Debug: Check if environment variables are loaded
+// console.log('🔍 Environment check:');
+// console.log('MongoDbUrl exists:', !!process.env.MongoDbUrl);
+// console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
 
-
-app.use(express.json());
+// CORS middleware
+app.use(cors({
+  origin: [
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173', 
+    'http://localhost:5173'
+  ],
+  credentials: true
+}));
+// app.use(cors());
+app.use(express.json());  
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint (works without database)
-app.get('/test', (req, res) => {
-  res.json({ 
-    message: 'Server is working!', 
-    timestamp: new Date(),
-    env: process.env.NODE_ENV || 'development'
-  });
-});
+// Conditional body parsing - CRITICAL FIX
+// app.use((req, res, next) => {
+//   // Skip body parsing for multipart/form-data - let multer handle it
+//   const contentType = req.headers['content-type'];
+//   if (contentType && contentType.includes('multipart/form-data')) {
+//     console.log('Skipping body parsing for multipart request');
+//     return next();
+//   }
+    
+//   // Use built-in parsers for other content types
+//   // console.log('Using standard body parsing for:', contentType);
+//   express.json()(req, res, () => {
+//     express.urlencoded({ extended: true })(req, res, next);
+//   });
+// });
 
-// Database health check
-app.get('/db-status', (req, res) => {
-  const mongoose = require('mongoose');
-  res.json({
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    readyState: mongoose.connection.readyState
-  });
-});
-
-// Serve static files
+// Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Routes
+app.use("/", router);
+
+// Enhanced server startup
 const startServer = async () => {
   try {
-    // Start server first
+    // console.log('🚀 Starting server initialization...');
+    
+    // Connect to database first
+    await ConnectDb();
+    
+    // Start server only after successful DB connection
     const PORT = process.env.PORT || 8000;
-    const server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
     });
-
-    // Then try to connect to database
-    try {
-      console.log('Connecting to database...');
-      await ConnectDb();
-      console.log('Database connected successfully');
-      
-      // Add routes only after successful DB connection
-      app.use("/", router);
-      console.log('Routes loaded successfully');
-      
-    } catch (dbError) {
-      console.error('Database connection failed:', dbError.message);
-      
-      // Add a fallback route for database errors
-      app.use("/", (req, res) => {
-        res.status(503).json({
-          success: false,
-          message: 'Database connection unavailable',
-          error: 'Service temporarily unavailable'
-        });
-      });
-    }
-
+    
   } catch (err) {
-    console.error('Failed to start server:', err);
+    console.error('❌ Failed to start server:', err);
+    console.error('Please check your database connection and try again.');
     process.exit(1);
   }
 };
 
+// Start the server
 startServer();
